@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+<title>&quot;Reproducible Research: Peer Assessment 1&quot;</title>
+
+<script type="text/javascript">
+window.onload = function() {
+  var imgs = document.getElementsByTagName('img'), i, img;
+  for (i = 0; i < imgs.length; i++) {
+    img = imgs[i];
+    // center an image if it is the only element of its parent
+    if (img.parentElement.childElementCount === 1)
+      img.parentElement.style.textAlign = 'center';
+  }
+};
+</script>
+
+
+
+
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 13px;
+}
+
+body {
+  max-width: 800px;
+  margin: auto;
+  padding: 1em;
+  line-height: 20px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 {
+   font-size:2.2em;
+}
+
+h2 {
+   font-size:1.8em;
+}
+
+h3 {
+   font-size:1.4em;
+}
+
+h4 {
+   font-size:1.0em;
+}
+
+h5 {
+   font-size:0.9em;
+}
+
+h6 {
+   font-size:0.8em;
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre, img {
+  max-width: 100%;
+}
+pre {
+  overflow-x: auto;
+}
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code {
+  font-size: 92%;
+  border: 1px solid #ccc;
+}
+
+code[class] {
+  background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * {
+      background: transparent !important;
+      color: black !important;
+      filter:none !important;
+      -ms-filter: none !important;
+   }
+
+   body {
+      font-size:12pt;
+      max-width:100%;
+   }
+
+   a, a:visited {
+      text-decoration: underline;
+   }
+
+   hr {
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote {
+      padding-right: 1em;
+      page-break-inside: avoid;
+   }
+
+   tr, img {
+      page-break-inside: avoid;
+   }
+
+   img {
+      max-width: 100% !important;
+   }
+
+   @page :left {
+      margin: 15mm 20mm 15mm 10mm;
+   }
+
+   @page :right {
+      margin: 15mm 10mm 15mm 20mm;
+   }
+
+   p, h2, h3 {
+      orphans: 3; widows: 3;
+   }
+
+   h2, h3 {
+      page-break-after: avoid;
+   }
+}
+</style>
+
+
+
+</head>
+
+<body>
+<h2>&quot;Reproducible Research: Peer Assessment 1&quot;</h2>
+
+<hr>
+
+<h2>Author : Martin Yan </h2>
+
+<h2>Loading and preprocessing the data</h2>
+
+<pre><code class="r">library(datasets)
+library(plyr)
+library(ggplot2)
+library(scales)
+library(grid)
+library(gridExtra)
+
+setwd(&quot;~/Dropbox/Github/RepData_PeerAssessment1/&quot;)
+activity.table&lt;- read.csv(&quot;activity.csv&quot;, colClasses = c(&quot;integer&quot;, &quot;Date&quot;, &quot;integer&quot;))
+activity.table.noNA &lt;- na.omit(activity.table)
+</code></pre>
+
+<h2>What is mean total number of steps taken per day?</h2>
+
+<pre><code class="r">steps.per.day &lt;- ddply(activity.table[!is.na(activity.table$steps),],.(date), summarize, steps = sum(steps))
+ggplot(steps.per.day, aes(x = date, y = steps)) + geom_histogram(stat = &quot;identity&quot;) +
+  scale_x_date(breaks = date_breaks(&quot;2 week&quot;)) +
+  labs(title=&quot;Histogram - Total number of steps taken each day&quot;, 
+       x=&quot;Date&quot;, y=&quot;Total number of steps&quot;)
+</code></pre>
+
+<p><img src="figure/unnamed-chunk-2-1.png" alt="plot of chunk unnamed-chunk-2"> </p>
+
+<p>The mean ... </p>
+
+<pre><code class="r">meanStepsPerDay&lt;- mean(steps.per.day$steps)
+meanStepsPerDay
+</code></pre>
+
+<pre><code>## [1] 10766.19
+</code></pre>
+
+<p>...and the median :</p>
+
+<pre><code class="r">medianStepsPerDay&lt;- median(steps.per.day$steps)
+medianStepsPerDay
+</code></pre>
+
+<pre><code>## [1] 10765
+</code></pre>
+
+<h2>What is the average daily activity pattern?</h2>
+
+<pre><code class="r">AvgStep.interval &lt;- ddply(activity.table[!is.na(activity.table$steps),], .(interval), summarize, steps = mean(steps))
+AvgStep.interval &lt;- AvgStep.interval[order(AvgStep.interval$interval),]
+print(ggplot(AvgStep.interval, aes(x=interval, y=steps)) + geom_line() +
+  labs(title=&quot;Avg num of steps taken in 5 mins interval&quot;, 
+       x=&quot;5 mins interval&quot;, y=&quot;Avg number of steps taken&quot;))
+</code></pre>
+
+<p><img src="figure/unnamed-chunk-5-1.png" alt="plot of chunk unnamed-chunk-5"> </p>
+
+<p>Which 5-minute interval contains the maximum number of steps:</p>
+
+<pre><code class="r">AvgStep.interval[which.max(AvgStep.interval$steps),]
+</code></pre>
+
+<pre><code>##     interval    steps
+## 104      835 206.1698
+</code></pre>
+
+<h2>Imputing missing values</h2>
+
+<p>The total no. of missing missing values (coded as NA) :</p>
+
+<pre><code class="r">nrow.fullTable &lt;- nrow(activity.table)
+nrow.table.noNA &lt;- nrow(activity.table.noNA)
+missingValue &lt;- nrow.fullTable - nrow.table.noNA
+
+missingValue
+</code></pre>
+
+<pre><code>## [1] 2304
+</code></pre>
+
+<p>A strategy to fill up all the missing values :  to fill all the missing value with the average value calculated previously</p>
+
+<pre><code class="r">for (row in 1: nrow.fullTable){
+        if(is.na(activity.table$steps[row])){
+                activity.table$steps[row]&lt;-AvgStep.interval[which(AvgStep.interval$interval == activity.table$interval[row]),]$steps
+        }
+
+}
+</code></pre>
+
+<p>Create a new dataset with missing value filled:</p>
+
+<pre><code class="r">steps.per.day.noNA &lt;- ddply(activity.table,.(date), summarize, steps = sum(steps))
+</code></pre>
+
+<p>Make a histogram after the missing values are filled</p>
+
+<pre><code class="r">ggplot(steps.per.day.noNA, aes(x = date, y = steps)) + geom_histogram(stat = &quot;identity&quot;) +
+   scale_x_date(breaks = date_breaks(&quot;2 week&quot;)) +
+   labs(title=&quot;Histogram - Total number of steps taken each day(no NA)&quot;, 
+        x=&quot;Date&quot;, y=&quot;Total number of steps&quot;)
+</code></pre>
+
+<p><img src="figure/unnamed-chunk-10-1.png" alt="plot of chunk unnamed-chunk-10"> </p>
+
+<p>And the corresponding mean and median:</p>
+
+<pre><code class="r">mean.noNA&lt;- mean(steps.per.day.noNA$steps)
+mean.noNA
+</code></pre>
+
+<pre><code>## [1] 10766.19
+</code></pre>
+
+<pre><code class="r">median.noNA &lt;- median(steps.per.day.noNA$steps)
+median.noNA
+</code></pre>
+
+<pre><code>## [1] 10766.19
+</code></pre>
+
+<p>The difference observed versus the data set with NA value:</p>
+
+<pre><code class="r">mean.diff &lt;- meanStepsPerDay - mean.noNA
+mean.diff
+</code></pre>
+
+<pre><code>## [1] 0
+</code></pre>
+
+<pre><code class="r">median.diff &lt;- medianStepsPerDay - median.noNA
+median.diff
+</code></pre>
+
+<pre><code>## [1] -1.188679
+</code></pre>
+
+<h2>Are there differences in activity patterns between weekdays and weekends?</h2>
+
+<p>Create a new factor variable in the dataset with two levels -- &quot;weekday&quot; and &quot;weekend&quot; :</p>
+
+<pre><code class="r">weekdayMap &lt;-data.frame(c(&quot;Monday&quot;,&quot;Tuesday&quot;,&quot;Wednesday&quot;,&quot;Thursday&quot;,&quot;Friday&quot;,&quot;Saturday&quot;,&quot;Sunday&quot;),c(rep(&quot;weekday&quot;,5),rep(&quot;weekend&quot;,2)))
+colnames(weekdayMap) &lt;- c(&quot;DayOfWeek&quot;,&quot;DayOrEnd&quot;)
+weekdayMap$DayOfWeek &lt;- as.factor(weekdayMap$DayOfWeek)
+steps.per.day.noNA$day &lt;-weekdays(as.Date(steps.per.day.noNA$date))
+
+steps.per.day.noNA$day &lt;- weekdayMap[match(steps.per.day.noNA$day, weekdayMap$DayOfWeek),2]
+activity.table$DayOrEnd &lt;- steps.per.day.noNA[match(activity.table$date,steps.per.day.noNA$date),3]
+activity.by.weekday &lt;- activity.table[which(activity.table$DayOrEnd == &quot;weekday&quot;),]
+activity.by.weekend &lt;- activity.table[which(activity.table$DayOrEnd == &quot;weekend&quot;),]
+</code></pre>
+
+<p>Make a panel plot containing a time series plot (i.e. type = &quot;l&quot;) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).</p>
+
+<pre><code class="r">interval.by.weekday &lt;- ddply(activity.by.weekday, .(interval), summarize, steps = mean(steps))
+interval.by.weekend &lt;- ddply(activity.by.weekend, .(interval), summarize, steps = mean(steps))
+plot.weekday&lt;- ggplot(interval.by.weekday, aes(x=interval, y=steps)) + geom_line() +
+        labs(title=&quot;5-minute interval, average number of steps taken during weekdays&quot;, 
+             x=&quot;Interval&quot;, y=&quot;Average number of steps&quot;)
+plot.weekend&lt;- ggplot(interval.by.weekend, aes(x=interval, y=steps)) + geom_line() +
+        labs(title=&quot;5-minute interval, average number of steps taken during weekend&quot;, 
+             x=&quot;Interval&quot;, y=&quot;Average number of steps&quot;)
+grid.arrange(plot.weekday,plot.weekend, nrow=2, main = &quot;Weekdays vs weekend&quot;)
+</code></pre>
+
+<p><img src="figure/unnamed-chunk-14-1.png" alt="plot of chunk unnamed-chunk-14"> </p>
+
+</body>
+
+</html>

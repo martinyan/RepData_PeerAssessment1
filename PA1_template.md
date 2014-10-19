@@ -5,7 +5,8 @@
 Author : Martin Yan 
 --------
 ## Loading and preprocessing the data
-```{r}
+
+```r
 library(datasets)
 library(plyr)
 library(ggplot2)
@@ -16,11 +17,11 @@ library(gridExtra)
 setwd("~/Dropbox/Github/RepData_PeerAssessment1/")
 activity.table<- read.csv("activity.csv", colClasses = c("integer", "Date", "integer"))
 activity.table.noNA <- na.omit(activity.table)
-
 ```
 ## What is mean total number of steps taken per day?
 
-```{r}
+
+```r
 steps.per.day <- ddply(activity.table[!is.na(activity.table$steps),],.(date), summarize, steps = sum(steps))
 ggplot(steps.per.day, aes(x = date, y = steps)) + geom_histogram(stat = "identity") +
   scale_x_date(breaks = date_breaks("2 week")) +
@@ -28,24 +29,35 @@ ggplot(steps.per.day, aes(x = date, y = steps)) + geom_histogram(stat = "identit
        x="Date", y="Total number of steps")
 ```
 
+![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2-1.png) 
+
 
 The mean ... 
-```{r}
+
+```r
 meanStepsPerDay<- mean(steps.per.day$steps)
 meanStepsPerDay
+```
 
+```
+## [1] 10766.19
 ```
 
 ...and the median :
-```{r}
+
+```r
 medianStepsPerDay<- median(steps.per.day$steps)
 medianStepsPerDay
+```
 
+```
+## [1] 10765
 ```
 
 ## What is the average daily activity pattern?
 
-```{r}
+
+```r
 AvgStep.interval <- ddply(activity.table[!is.na(activity.table$steps),], .(interval), summarize, steps = mean(steps))
 AvgStep.interval <- AvgStep.interval[order(AvgStep.interval$interval),]
 print(ggplot(AvgStep.interval, aes(x=interval, y=steps)) + geom_line() +
@@ -53,28 +65,40 @@ print(ggplot(AvgStep.interval, aes(x=interval, y=steps)) + geom_line() +
        x="5 mins interval", y="Avg number of steps taken"))
 ```
 
+![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-1.png) 
+
 Which 5-minute interval contains the maximum number of steps:
 
-```{r}
-AvgStep.interval[which.max(AvgStep.interval$steps),]
 
+```r
+AvgStep.interval[which.max(AvgStep.interval$steps),]
+```
+
+```
+##     interval    steps
+## 104      835 206.1698
 ```
 
 ## Imputing missing values
 
 The total no. of missing missing values (coded as NA) :
-```{r}
+
+```r
 nrow.fullTable <- nrow(activity.table)
 nrow.table.noNA <- nrow(activity.table.noNA)
 missingValue <- nrow.fullTable - nrow.table.noNA
 
 missingValue
+```
 
+```
+## [1] 2304
 ```
 
 A strategy to fill up all the missing values :  to fill all the missing value with the average value calculated previously
 
-```{r}
+
+```r
 for (row in 1: nrow.fullTable){
         if(is.na(activity.table$steps[row])){
                 activity.table$steps[row]<-AvgStep.interval[which(AvgStep.interval$interval == activity.table$interval[row]),]$steps
@@ -85,42 +109,67 @@ for (row in 1: nrow.fullTable){
 
 Create a new dataset with missing value filled:
 
-```{r}
+
+```r
 steps.per.day.noNA <- ddply(activity.table,.(date), summarize, steps = sum(steps))
 ```
 
 Make a histogram after the missing values are filled
-```{r}
+
+```r
 ggplot(steps.per.day.noNA, aes(x = date, y = steps)) + geom_histogram(stat = "identity") +
    scale_x_date(breaks = date_breaks("2 week")) +
    labs(title="Histogram - Total number of steps taken each day(no NA)", 
         x="Date", y="Total number of steps")
 ```
 
+![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10-1.png) 
+
 And the corresponding mean and median:
-```{r}
+
+```r
 mean.noNA<- mean(steps.per.day.noNA$steps)
 mean.noNA
+```
 
+```
+## [1] 10766.19
+```
+
+```r
 median.noNA <- median(steps.per.day.noNA$steps)
 median.noNA
 ```
 
-The difference observed versus the data set with NA value:
-```{r}
+```
+## [1] 10766.19
+```
 
+The difference observed versus the data set with NA value:
+
+```r
 mean.diff <- meanStepsPerDay - mean.noNA
 mean.diff
+```
 
+```
+## [1] 0
+```
+
+```r
 median.diff <- medianStepsPerDay - median.noNA
 median.diff
+```
 
+```
+## [1] -1.188679
 ```
 
 ## Are there differences in activity patterns between weekdays and weekends?
 Create a new factor variable in the dataset with two levels -- "weekday" and "weekend" :
 
-```{r}
+
+```r
 weekdayMap <-data.frame(c("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"),c(rep("weekday",5),rep("weekend",2)))
 colnames(weekdayMap) <- c("DayOfWeek","DayOrEnd")
 weekdayMap$DayOfWeek <- as.factor(weekdayMap$DayOfWeek)
@@ -134,8 +183,8 @@ activity.by.weekend <- activity.table[which(activity.table$DayOrEnd == "weekend"
 
 Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
 
-```{r}
 
+```r
 interval.by.weekday <- ddply(activity.by.weekday, .(interval), summarize, steps = mean(steps))
 interval.by.weekend <- ddply(activity.by.weekend, .(interval), summarize, steps = mean(steps))
 plot.weekday<- ggplot(interval.by.weekday, aes(x=interval, y=steps)) + geom_line() +
@@ -146,3 +195,5 @@ plot.weekend<- ggplot(interval.by.weekend, aes(x=interval, y=steps)) + geom_line
              x="Interval", y="Average number of steps")
 grid.arrange(plot.weekday,plot.weekend, nrow=2, main = "Weekdays vs weekend")
 ```
+
+![plot of chunk unnamed-chunk-14](figure/unnamed-chunk-14-1.png) 
